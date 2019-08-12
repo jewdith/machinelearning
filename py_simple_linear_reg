@@ -1,0 +1,52 @@
+#simpele lineaire regressie 
+
+#importing libraries 
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+#importing dataset
+dataset = pd.read_csv('Salary_Data.csv')
+
+#de onafhankelijke variabele
+X = dataset.iloc[:, :-1].values
+
+#de afhankelijke variabele
+Y= dataset.iloc[:,1].values
+
+#splitting dataset into the training set & test set 
+from sklearn.model_selection import train_test_split
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=1/3, random_state=0)
+
+#feature scaling niet nodig want dat doet simple regressie al 
+"""from sklearn.preprocessing import StandardScaler
+sc_X= StandardScaler()
+X_train = sc_X.fit_transform(X_train)
+X_test= sc_X.transform(X_test)"""
+
+#fitting simple lineair regression to the training set.dit is het ML gedeelte. 
+from sklearn.linear_model import LinearRegression
+#object aanmaken die methode terruggeeft.
+regressor = LinearRegression()
+# LR in trainingsset toepassen
+regressor.fit(X_train, Y_train)
+
+#voorspelling test set resultaten. Y_test = werkelijke salris, Y_pred= vector voorspellingen
+Y_pred = regressor.predict(X_test)
+
+#visualiseren train set
+plt.scatter(X_train, Y_train, color="red") 
+plt.plot(X_train, regressor.predict(X_train), color = "blue")
+plt.title("Salary vs Experience (training set)")
+plt.xlabel("years of experience")
+plt.ylabel("salary")
+plt.show()
+
+#visualiseren test set
+plt.scatter(X_test, Y_test, color="red") 
+#hoeft niet aangepast want dit is de uitkomst van de SLR. punten zijn nieuw de lijn niet. 
+plt.plot(X_train, regressor.predict(X_train), color = "blue")
+plt.title("Salary vs Experience (training set)")
+plt.xlabel("years of experience")
+plt.ylabel("salary")
+plt.show()
