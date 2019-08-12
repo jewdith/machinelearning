@@ -1,0 +1,69 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Apr 28 16:32:10 2019
+
+@author: judit
+"""
+#importing libraries 
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+#importing dataset
+dataset = pd.read_csv('50_Startups.csv')
+X = dataset.iloc[:, :-1].values
+Y= dataset.iloc[:,4].values
+
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+labelencoder_X = LabelEncoder()
+X[:, 3] = labelencoder_X.fit_transform(X[:, 3])
+onehotencoder = OneHotEncoder(categorical_features = [3])
+X = onehotencoder.fit_transform(X).toarray()
+
+#voorkomen dummy var trap door 1e dummy var weg te halen D2=1-D1
+X = X[:,1:]
+
+#splitting dataset into the training set & test set 
+from sklearn.model_selection import train_test_split 
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
+
+#feature scaling doet package zelf al.
+#visualiseren niet mogelijk want per dimensie 1 kolom nodig en je hebt er 4
+
+#toepassen MLR in trainingset
+from sklearn.linear_model import LinearRegression
+regressor = LinearRegression()
+regressor.fit(X_train, Y_train)
+
+#voorspellen test set resultaten 
+Y_pred = regressor.predict(X_test)
+
+#backwards elimination, zodat je optimaal model hebt
+#STEP1= SELECT SIGNIFICANCE LVL. SL=0.05
+#STEP 2: FIT FULL MODEL WIH ALL POSSIBLE PREDICTORS
+#je voegt X toe aan 50 kolommen, niet andersom!
+import statsmodels.formula.api as sm 
+X = np.append(arr = np.ones((50,1)).astype(int), values = X ,axis = 1)
+X_opt = X[:,[0,1,2,3,4,5]]
+regressor_OLS = sm.OLS(endog = Y, exog = X_opt).fit()
+regressor_OLS.summary()
+
+#STEP 4 : REMOVE HIGHEST VALUE 
+#IMPLEMENT MODEL AGAIN AND REPEAT UNTIL EVERY Xn BELOW 0.05
+X_opt = X[:,[0,1,3,4,5]]
+regressor_OLS = sm.OLS(endog = Y, exog = X_opt).fit()
+regressor_OLS.summary()
+
+X_opt = X[:,[0,3,4,5]]
+regressor_OLS = sm.OLS(endog = Y, exog = X_opt).fit()
+regressor_OLS.summary()
+
+X_opt = X[:,[0,3,5]]
+regressor_OLS = sm.OLS(endog = Y, exog = X_opt).fit()
+regressor_OLS.summary()
+
+X_opt = X[:,[0,3]]
+regressor_OLS = sm.OLS(endog = Y, exog = X_opt).fit()
+regressor_OLS.summary()
+
+#Conclusie: kolom 3 = X3 (R&D spend) is de var die Y het meest beinvloed
